@@ -1,0 +1,196 @@
+---
+- name: "Getting the number of VCPUs | Clear task"
+  shell: |
+    . "{{ testwaves_openrc }}"
+
+    openstack hypervisor stats show | sed '/vcpus  /!d;s/|[ t ]//;s/vcpus//;s/[ t ] *| //;s/|//'
+  register: vcpus
+
+
+- name: "Deleting temporary rally directories | Clear task"
+  file:
+    path: "{{ testwaves_directories.work_dir }}"
+    state: absent
+  when: testwaves_clear_dir == True
+
+
+- name: "Delete static instances | Clear task"
+  include_tasks: clear-instances.yml
+  with_items:
+    - "{{ testwaves_static_network }}"
+  loop_control:
+    loop_var: outer_item
+
+
+- name: "Deleting a key pair | Clear task"
+  os_keypair:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: absent
+    name: testwaves_key
+  when: testwaves_clear_key == True
+
+
+- name: "Deleting flavors | Clear task"
+  os_nova_flavor:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: absent
+    name: "{{ item.name }}"
+  with_items: 
+    - "{{ testwaves_flavor_types }}"
+    - "{{ testwaves_static }}"
+  when: testwaves_clear_flavors == True
+
+
+- name: "Deleting images | Clear task" 
+  os_image:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: absent
+    name: "{{ item.name }}"
+  with_items: 
+    - "{{ testwaves_cloud_images }}"
+  when: testwaves_clear_images == True
+
+
+- name: "Deleting security group | Clear task"
+  os_security_group:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: absent
+    name: "{{ testwaves_security_groups }}"
+  when: testwaves_clear_secgroup == True 
+
+
+- name: "Deleting router | Clear task"
+  os_router:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: absent
+    name: "{{ item.name }}"
+  with_items: 
+    - "{{ testwaves_routers }}"
+  when: testwaves_clear_routers == True and testwaves_routers is defined
+
+
+- name: "Deleting networks | Clear task"
+  os_network:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: absent
+    name: "{{ item.name }}"
+  with_items: 
+    - "{{ testwaves_networks_vxlan }}"
+  when: testwaves_clear_nets == True and testwaves_networks_vxlan is defined
+
+
+- name: "Deleting networks | Clear task"
+  os_network:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: absent
+    name: "{{ item.name }}"
+  with_items: 
+    - "{{ testwaves_networks_flat }}"
+  when: testwaves_clear_nets == True and testwaves_networks_flat is defined
+
+
+- name: "Deleting networks | Clear task"
+  os_network:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: absent
+    name: "{{ item.name }}"
+  with_items: 
+    - "{{ testwaves_networks_vlan }}"
+  when: testwaves_clear_nets == True and testwaves_networks_vlan is defined
+
+
+- name: "Deleting subnets | Clear task"
+  os_subnet:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: absent
+    name: "{{ item.name }}"
+  with_items: 
+    - "{{ testwaves_subnets }}"
+  when: testwaves_clear_subnets == True and testwaves_subnets is defined
+
+
+- name: "Deleting rally  project | Clear task"
+  os_project:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: absent
+    name: "{{ testwaves_project_name }}"

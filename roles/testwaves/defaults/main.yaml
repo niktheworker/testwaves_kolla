@@ -1,0 +1,205 @@
+---
+
+testwaves_region_type: ovs #тип региона lxbr/ovs
+testwaves_smoke: true #режим тестирования с минимальным набором тестов
+testwaves_run: true
+
+##############
+#####Auth#####
+##############
+
+testwaves_cloud: default #для clouds.yaml
+testwaves_endpoint_type: admin #для os_* модулей ансибла
+
+testwaves_auth:
+  auth_url: http://10.220.134.2:35357/v3
+  project_name: admin
+  username: admin
+  password: admin
+  user_domain_name: Default
+  project_domain_name: Default
+
+testwaves_region_name: RegionOne
+
+testwaves_openrc: '/etc/kolla/admin-openrc.sh'
+
+##########
+#############
+
+
+
+
+######################
+#####Project vars#####
+######################
+
+nexus_user: admin
+nexus_pass: admin
+nexus_ repo: http://10.56.48.1:8081/repository/testwaves/
+
+testwaves_create_key: True #создание ssh ключей. 
+
+###удаление директорий, ключей и т.д. используется в таске clear
+testwaves_clear_dir: True 
+testwaves_clear_key: True
+testwaves_clear_nets: True
+testwaves_clear_subnets: True
+testwaves_clear_routers: True
+testwaves_clear_images: True
+testwaves_clear_secgroup: True
+testwaves_clear_flavors: True
+
+###директории для создания.
+testwaves_directories:
+  work_dir: '/root/testwaves/'
+  scenarios_dir: '/root/testwaves/scenarios'
+  reports_dir: '/root/testwaves/reports'
+  images_dir: '/root/testwaves/images'
+  keypair_dir: '/root/testwaves/keypair'
+  tempest_dir: '/root/testwaves/tempest'
+
+###имя проекта и домен, юзер для создания проекта
+testwaves_project_name: testwaves
+testwaves_project_description: "testwaves project: tempest, static, rally tests"
+testwaves_domain_id: default
+testwaves_project_user: admin
+testwaves_project_role: admin
+
+###квоты проекта
+testwaves_project_quota:
+  - {name: 'testwaves', instances: '-1', cores: '-1', ram: '-1'}
+
+###Флэт сети для создания 
+testwaves_networks_flat:
+  - { name: 'testwaves_flat1', provider_network_type: 'flat', provider_physical_network: 'physnet1', shared: 'yes', external: 'yes' }
+
+###Vxlan сети для создания 
+testwaves_networks_vxlan:
+  - { name: 'testwaves_vxlan1', provider_network_type: 'vxlan', shared: 'yes', external: 'no' }
+  - { name: 'testwaves_vxlan2', provider_network_type: 'vxlan', shared: 'yes', external: 'no' }
+
+###Vlan сети для создания 
+#testwaves_networks_vlan:
+#  - { name: 'testwaves_vlan1', provider_network_type: 'vlan', provider_physical_network: 'provider', provider_segmentation_id: '10', shared: 'yes', external: 'yes' }
+
+###Сабнеты для vxlan/flat/vpn сетей. network_name указывает на testwaves_networks_flat/vxlan/vlan
+testwaves_subnets:
+  - { name: 'testwaves_provider1', network_name: 'testwaves_flat1', cidr: '10.220.131.0/24', gateway_ip: '10.220.131.100', allocation_pool_start: '10.220.131.101', allocation_pool_end: '10.220.131.200' }
+  - { name: 'testwaves_subnet1', network_name: 'testwaves_vxlan1', cidr: '10.100.1.0/24', gateway_ip: '10.100.1.254', allocation_pool_start: '10.100.1.1', allocation_pool_end: '10.100.1.250' }  
+  - { name: 'testwaves_subnet2', network_name: 'testwaves_vxlan2', cidr: '10.100.2.0/24', gateway_ip: '10.100.2.254', allocation_pool_start: '10.100.2.1', allocation_pool_end: '10.100.2.250' }
+
+###Создание роутера. network - провайдерская сеть, int_subnet - vxlan сеть
+testwaves_routers:
+  - { name: 'testwaves_router', network: 'testwaves_flat1', ex_subnet: 'testwaves_provider1', ex_ip: '10.220.131.171', int_subnet: 'testwaves_subnet1' }
+
+###Имя группы безопасности для ее создания.
+testwaves_security_groups: testwaves
+
+###Правила группы безопасноти 
+testwaves_security_group_rules:
+  - { security_group: 'testwaves', protocol: 'icmp', port_range_min: '-1', port_range_max: '-1', remote_ip_prefix: '0.0.0.0/0' }
+  - { security_group: 'testwaves', protocol: 'tcp', port_range_min: '-1', port_range_max: '-1', remote_ip_prefix: '0.0.0.0/0' }
+  - { security_group: 'testwaves', protocol: 'udp', port_range_min: '-1', port_range_max: '-1', remote_ip_prefix: '0.0.0.0/0' }
+
+###Флейворы
+testwaves_flavor_types: 
+  - { name: 'testwaves.tiny', vcpus: '1', ram: '128', disk: '1'  }
+  - { name: 'testwaves.small', vcpus: '1', ram: '512', disk: '1'  }
+  - { name: 'testwaves.medium', vcpus: '2', ram: '1024', disk: '5'  }
+  - { name: 'testwaves.large', vcpus: '4', ram: '2048', disk: '10'  }
+
+###Образы
+testwaves_cloud_images:
+  - { url: 'http://download.cirros-cloud.net/0.5.1/cirros-0.5.1-x86_64-disk.img', name: 'cirros-0.5.1-x86_64-disk', filename: '{{ testwaves_directories.images_dir }}/cirros-0.5.1-x86_64-disk.img', container_format: 'bare', disk_format: 'qcow2' }
+
+#########
+############
+
+
+
+######################
+#####Tempest vars#####
+######################
+
+
+#testwaves_tempest_ver: "{{ tempest_git_install_branch|default(18.0.0) }}" #версия темпеста
+#testwaves_tempest_git_repo: "{{ tempest_git_repo|default("https://opendev.org/openstack/tempest") }}" #линк на репозиторий темпеста
+
+testwaves_tempest_extend_file: "{{ testwaves_directories.tempest_dir }}/extra_options.conf" #расположение конфига для темпеста
+testwaves_tempest_skip_list: "{{ testwaves_directories.tempest_dir }}/skip-list.yaml" #расположение скип-листа для темпеста
+
+testwaves_tempest_flavor_ref: testwaves.tiny #используемый флейвор
+testwaves_tempest_flavor_ref_alt: testwaves.small #используемый альтернативный флейвор
+testwaves_tempest_image_ref: cirros-0.5.1-x86_64-disk #используемый образ для compute тестов
+testwaves_tempest_image_ref_alt: cirros-0.5.1-x86_64-disk #используемый альтернативный образ для compute тестов
+
+testwaves_tempest_img_file: cirros-0.5.1-x86_64-disk.img #используемый образ для для images тестов
+
+testwaves_tempest_fixed_network_name: external #Какую сеть использует, когда темпест не создает сети. Для lxbr региона нужно указать один из vlan'ов. ДЛя ovs указывать не нужно.
+testwaves_tempest_build_timeout: 300 #Таймауты на тесты. На медленных регионах имеет смысл увеличивать до 600-700
+testwaves_tempest_dashboard_url: https://10.220.134.50 #vip dashboard
+testwaves_tempest_public_network_id: testwaves_flat1 #Провайдерская сеть для соединения с инстансами. Для lxbr региона указать один из vlan'ов, для ovs flat/vlan, которая доступна из утилити контейнера.
+testwaves_tempest_floating_network_name: testwaves_flat1 #Флоатинг сеть, адреса которой используются для валидации. Для lxbr указывать не нужно.
+
+
+#########
+############
+
+
+
+##########################
+#####Static load vars#####
+##########################
+
+testwaves_static:
+  name: 'testwaves.static' #имя флейвора для инстансов статической нагрузки
+  vcpu: '1' #кол-во ядер для флейвора
+  disk: '5' #кол-во памяти для флейвора
+  image: 'cirros-0.5.1-x86_64-disk' #имя используемого образа для инстансов статической нагрузки
+
+###Используемые сети для инстансов статической нагрузки
+testwaves_static_network: 
+  - testwaves_vxlan1
+  - testwaves_vxlan2
+
+###Коэфициент переподписки
+testwaves_cpu_allocation_ratio: '1'
+
+
+#########
+############
+
+
+
+
+
+##########################
+#####Rally test vars######
+##########################
+
+
+testwaves_provider_networks: True #Должен быть True на lxbr регионах, False - на ovs
+
+testwaves_service_list: #Используемые наборы тестов
+  - authentication
+  - nova
+  - keystone
+  - cinder
+  - glance
+  - neutron #закомментировать на lxbr регионе
+
+testwaves_users_amount: 5 #Количество пользователей на регионе
+testwaves_tenants_amount: 2 #Количество тенантов
+testwaves_controllers_amount: 3 #Количество контрол нод
+testwaves_compute_amount: 3 #Количество компут нод
+testwaves_storage_amount: 3 #Количество сторедж нод
+testwaves_network_amount: 0 #Количество сетевых нод
+testwaves_time_multiplier: 1 #множитель времени выполнения (количества тестов)
+
+testwaves_use_existing_users: false #true для readonly keystone
+testwaves_image_name: "^(cirros.*-disk|TestVM)$" #используемый образ для ралли
+testwaves_flavor_name: "testwaves.tiny" #флейвор для ралли
+testwaves_glance_image_location: "{{ testwaves_directories.images_dir }}/cirros-0.5.1-x86_64-disk.img" #линк образа
+
+#########
+############

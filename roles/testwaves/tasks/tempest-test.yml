@@ -1,0 +1,117 @@
+---
+#- name: "Copy openrc to toolbox | Tempest task"
+#  shell: |
+#     docker cp "{{ testwaves_openrc }}" kolla_toolbox:/admin-openrc.sh
+#
+#     docker exec -i -u0 kolla_toolbox chown ansible.ansible /admin-openrc.sh
+
+
+#- name: "Copy openrc to rally | Tempest task"
+#  shell: |
+#     docker cp "{{ testwaves_openrc }}" rally:/var/lib/rally/admin-openrc.sh
+#
+#     docker exec -i -u0 rally chown rally.rally /var/lib/rally/admin-openrc.sh
+
+
+- name: "Getting id of tempest_image_ref  | Tempest task"
+  shell: |
+     . "{{ testwaves_openrc }}"
+
+     openstack image list -f value" | awk '/{{ testwaves_tempest_image_ref }} /  {print $1 }'
+  register: testwaves_tempest_image_ref_id
+
+
+- name: "Getting id of tempest_image_ref_alt  | Tempest task"
+  shell: |
+     . "{{ testwaves_openrc }}"
+
+     openstack image list -f value" | awk '/{{ testwaves_tempest_image_ref_alt }} /  {print $1 }'
+  register: testwaves_tempest_image_ref_alt_id
+
+
+- name: "Getting id of public_network_id  | Tempest task"
+  shell: |
+     . "{{ testwaves_openrc }}"
+
+     openstack network list -f value" | awk '/{{ testwaves_tempest_public_network_id }} /  {print $1 }'
+  register: testwaves_tempest_public_network_id_id
+
+
+- name: "Copy extra_options  | Tempest task"
+  template:
+    src: "templates/tempest.{{ testwaves_region_type }}.j2"
+    dest: "{{ testwaves_directories.tempest_dir }}/tempest.{{ testwaves_region_type }}"
+    owner: root
+    group: root
+    mode: 0644
+
+
+- name: "Template skip-list  | Tempest task"
+  template:
+    src: "templates/skip.j2"
+    dest: "{{ testwaves_directories.tempest_dir }}/skip.{{ testwaves_region_type }}"
+    owner: root
+    group: root
+    mode: 0644
+
+
+- name: "Check rally deployment | Tempest task"
+  shell: |
+    rally deployment list | awk '/existing /  {print $10 }' 
+  register: rally_deployment
+
+
+- name: "Use rally deployment | Tempest task"
+  shell: |
+    . "{{ testwaves_openrc }}"
+
+    rally deployment use existing
+  when: rally_deployment.stdout != "*"
+
+
+- name: "Create rally deployment | Tempest task"
+  shell: |
+    . "{{ testwaves_openrc }}"
+
+    rally deployment create --fromenv --name=existing"
+  when: rally_deployment.stdout != "*"
+
+
+- name: "Check tempest install | Tempest task"
+  shell: |
+    rally verify list-verifiers |  awk '/tempest-verifier /  {print $14 }'
+  register: tempest_installed
+
+
+- name: "Installing tempest | Tempest task"
+  shell: |
+    rally verify create-verifier --type tempest --name tempest-verifier --version {{ testwaves_tempest_ver }} --source {{ testwaves_tempest_git_repo }}
+  when: tempest_installed.stdout != "installed"
+
+
+- name: "Configure tempest | Tempest task"
+  shell: |
+    rally verify configure-verifier --extend /var/lib/rally/tempest.{{ testwaves_region_type }}
+
+
+- name: "Start tempest test | Tempest task"
+  shell: |
+    rally verify start --skip-list /var/lib/rally/skip.{{ testwaves_region_type }}
+  when: testwaves_smoke != True
+  ignore_errors: yes
+
+
+- name: "Start tempest test smoke | Tempest task"
+  shell: |
+    rally verify start --pattern set=smoke
+  when: testwaves_smoke == True
+
+
+- name: "Generate tempest report | Tempest task"
+  shell: |
+    rally verify report --type html --to {{ testwaves_directories.reports_dir }}/tempest_report_{{ ansible_date_time.date }}_*.html
+
+
+- name: "Return tempest report to ansible host | Tempest task"
+  shell: |
+    curl -v -u {{ nexus_user }}:{{ nexus_pass }} --upload-file {{ testwaves_directories.reports_dir }}/tempest_report_{{ ansible_date_time.date }}_*.html {{ nexus_ repo }}

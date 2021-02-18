@@ -1,0 +1,79 @@
+[compute]
+image_ref = {{ testwaves_tempest_image_ref_id.stdout }}
+image_ref_alt = {{ testwaves_tempest_image_ref_alt_id.stdout }}
+flavor_ref = {{ testwaves_tempest_flavor_ref }}
+flavor_ref_alt = {{ testwaves_tempest_flavor_ref_alt }}
+build_timeout = {{ testwaves_tempest_build_timeout }}
+
+
+[compute-feature-enabled]
+live_migration = True
+cold_migration = True
+resize = True
+spice_console = true
+attach_encrypted_volume = False
+shelve = false
+vnc_console = False
+
+
+[image]
+build_timeout = {{ testwaves_tempest_build_timeout }}
+
+
+[image-feature-enabled]
+deactivate_image = True
+api_v1 = False
+
+
+[input-scenario]
+ssh_user_regex = [["^.*[Cc]irros.*$", "cirros"], ["^.*[Tt]est[VvMm].*$", "cirros"], ["^.*rally_verify.*$", "cirros"]]
+
+
+[network]
+project_networks_reachable = false
+public_network_id = {{ testwaves_tempest_public_network_id_id.stdout }}
+build_timeout = {{ testwaves_tempest_build_timeout }}
+
+
+[network-feature-enabled]
+floating_ips = False
+ipv6_subnet_attributes = True
+ipv6 = True
+api_extensions = default-subnetpools,availability_zone,network_availability_zone,auto-allocated-topology,ext-gw-mode,binding,metering,agent,subnet_allocation,l3_agent_scheduler,tag,external-net,standard-attr-tag,flavors,net-mtu,network-ip-availability,quotas,revision-if-match,l3-ha,provider,multi-provider,quota_details,address-scope,extraroute,net-mtu-writable,subnet-service-types,standard-attr-timestamp,service-type,l3-flavors,port-security,extra_dhcp_opt,standard-attr-revisions,pagination,sorting,security-group,dhcp_agent_scheduler,router_availability_zone,rbac-policies,tag-ext,standard-attr-description,ip-substring-filtering,router,allowed-address-pairs,project-id
+
+
+[scenario]
+img_dir = {{ testwaves_directories.images_dir }}
+img_file = {{ testwaves_tempest_img_file }}
+
+[service_available]
+cinder = True
+glance = True
+heat = False
+ironic = False
+neutron = True
+nova = True
+sahara = False
+swift = False
+
+
+[validation]
+connect_method = floating
+run_validation = True
+auth_method = keypair
+image_ssh_user = cirros
+image_ssh_password = gocubsgo
+ping_timeout = 240
+connect_timeout = 120
+ssh_timeout = 600
+
+
+[volume]
+storage_protocol = ceph
+build_timeout = {{ testwaves_tempest_build_timeout }}
+
+
+[volume-feature-enabled]
+bootable = True
+backup = False
+multi_backend = False

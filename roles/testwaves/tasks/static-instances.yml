@@ -1,0 +1,35 @@
+---
+- name: "Getting the number of free IP in network  | Run instances in the {{ outer_item }} network task"
+  shell: |
+    . "{{ testwaves_openrc }}"
+
+    openstack ip availability list -f value --project {{ testwaves_project_name | quote }} | awk '/{{ outer_item | quote }} /  {print $3 - $4}'
+  register: fr_ip
+
+
+- name: "Calculating the total number of IPs for the network | Run instances in the {{ outer_item }} network task "
+  debug:
+    msg: "{{ (fr_ip.stdout|int * percent_ips.msg|int / 100)|round|int }}"
+  register: number_ips
+
+
+- name: "Starting static instances | Static load task"
+  os_server:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: present
+    wait: false
+    name: testwaves_static_instance_{{ outer_item }}_{{ item }}
+    image: "{{ testwaves_static.image }}"
+    flavor: "{{ testwaves_static.name }}"
+    network: "{{ outer_item }}"
+    security_groups: "{{ testwaves_security_groups }}"
+  with_sequence: count="{{ number_ips.msg|int }}"
+  ignore_errors: True

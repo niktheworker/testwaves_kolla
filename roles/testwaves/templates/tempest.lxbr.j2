@@ -1,0 +1,81 @@
+[auth]
+create_isolated_networks = False
+
+[compute]
+image_ref = {{ testwaves_tempest_image_ref_id.stdout }}
+image_ref_alt = {{ testwaves_tempest_image_ref_alt_id.stdout }}
+flavor_ref = {{ testwaves_tempest_flavor_ref }}
+flavor_ref_alt = {{ testwaves_tempest_flavor_ref_alt }}
+fixed_network_name = {{ testwaves_tempest_fixed_network_name }}
+build_timeout = {{ testwaves_tempest_build_timeout }}
+
+[compute-feature-enabled]
+live_migration = True
+resize = True
+vnc_console = False
+spice_console = True
+attach_encrypted_volume = False
+interface_attach = False
+shelve = False
+
+[image]
+build_timeout = {{ testwaves_tempest_build_timeout }}
+
+
+[image-feature-enabled]
+api_v1 = False
+deactivate_image = True
+
+[orchestration]
+instance_type = 
+stack_owner_role = heat_stack_owner
+stack_user_role = heat_stack_user
+
+[input-scenario]
+ssh_user_regex = [["^.*[Cc]irros.*$", "cirros"], ["^.*[Tt]est[VvMm].*$", "cirros"], ["^.*rally_verify.*$", "cirros"]]
+
+[network]
+public_network_id = {{ testwaves_tempest_public_network_id_id.stdout }}
+project_networks_reachable = True
+build_timeout = {{ testwaves_tempest_build_timeout }}
+
+[network-feature-enabled]
+ipv6_subnet_attributes = False
+ipv6 = False
+port_admin_state_change = False
+api_extensions = quotas,subnet_allocation,agent,quota_details,service-type,security-group
+floating_ips = False
+
+
+[scenario]
+img_dir = {{ testwaves_directories.images_dir }}
+img_file = {{ testwaves_tempest_img_file }}
+
+[service_available]
+cinder = True
+glance = True
+heat = False
+ironic = False
+neutron = True
+nova = True
+sahara = False
+swift = False
+
+[validation]
+run_validation = False
+image_ssh_user = cirros
+image_ssh_password = gocubsgo
+ping_timeout = 240
+connect_timeout = 120
+ssh_timeout = 600
+connect_method = fixed
+auth_method = keypair
+network_for_ssh = {{ testwaves_tempest_fixed_network_name }}
+
+[volume]
+storage_protocol = ceph
+build_timeout = {{ testwaves_tempest_build_timeout }}
+
+[volume-feature-enabled]
+bootable = True
+backup = False

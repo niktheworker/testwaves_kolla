@@ -1,0 +1,6 @@
+---
+- name: Installation and setup of Testwaves
+  hosts: localhost
+  user: root
+  roles:
+    - role: testwaves

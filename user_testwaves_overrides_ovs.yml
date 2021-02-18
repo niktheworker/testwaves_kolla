@@ -1,0 +1,3 @@
+---
+testwaves_tempest_skip_list:
+ - 'tempest.api.network.admin.test_external_networks_negative.ExternalNetworksAdminNegativeTestJSON.test_create_port_with_precreated_floatingip_as_fixed_ip[id-d402ae6c-0be0-4d8e-833b-a738895d98d0,negative]: its bug https://bugzilla.redhat.com/show_bug.cgi?id=1615241'

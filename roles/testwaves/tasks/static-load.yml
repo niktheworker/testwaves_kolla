@@ -1,0 +1,87 @@
+---
+- name: "Getting the number of VCPUs | Static load task"
+  shell: |
+    . "{{ testwaves_openrc }}"
+
+    openstack hypervisor stats show | sed '/vcpus  /!d;s/|[ t ]//;s/vcpus//;s/[ t ] *| //;s/|//'
+  register: vcpus
+
+
+- name: "Getting the number of RAM | Static load task"
+  shell: |
+    . "{{ testwaves_openrc }}"
+
+    openstack hypervisor stats show | sed '/memory_mb  /!d;s/|[ t ]//;s/memory_mb//;s/[ t ] *| //;s/|//'
+  register: memory
+
+
+- name: "Generating flavor for static load | Static load task"
+  os_nova_flavor:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: present
+    name: "{{ testwaves_static.name }}"
+    ram: "{{ ((memory.stdout|int * 70 / 100)|round(0,'common')|int / (vcpus.stdout|int * testwaves_cpu_allocation_ratio|int *70 / 100 / testwaves_static.vcpu|int)|round(0, 'common'))|int }}"
+    vcpus: "{{ testwaves_static.vcpu }}"
+    disk: "{{ testwaves_static.disk }}"
+
+
+- name: "Getting the number of free IP | Static load task"
+  shell: |
+    . "{{ testwaves_openrc }}"
+
+    $TOTAL
+    End={{ testwaves_static_network|length }}
+
+    for (( i=1; i<=$End; i++))
+    do
+
+    NETWORK=$( echo "{{ testwaves_static_network| join(' ') }}" | cut -d ' ' -f $i )  
+    PART=$(openstack ip availability list -f value --project {{ testwaves_project_name }} | sed "/$NETWORK\s/!d" | awk '{print $3}')
+
+    TOTAL=$(($TOTAL + $PART))
+
+    done
+
+    echo $TOTAL
+  args:
+    executable: /bin/bash
+  register: free_ip
+
+
+- name: "Calculated the total number of instances | Static load task"
+  debug:
+    msg: "{{ vcpus.stdout|int * testwaves_cpu_allocation_ratio|int * 70 / 100 / testwaves_static.vcpu|int }}"
+  register: total_vm
+
+
+- name: "Calculated of percentage of IPs must be used | Static load task"
+  debug:
+    msg:  "{{ total_vm.msg|int / (free_ip.stdout|int / 100) }}"
+  register: percent_ips
+
+
+- name: "Launch static instances | Static load task"
+  include_tasks: static-instances.yml
+  with_items:
+    - "{{ testwaves_static_network }}"
+  loop_control:
+    loop_var: outer_item
+
+
+- name: "Abort when static instances is active less than 50% | Static load task"
+  shell: |
+    . "{{ testwaves_openrc }}"
+
+    openstack server list --project {{ testwaves_project_name }} | sed '/testwaves_static*.*ACTIVE/!d' | wc -l
+  register: active_instances
+  until: "{{ active_instances.stdout|int > (vcpus.stdout|int * testwaves_cpu_allocation_ratio|int *70 / 100 / testwaves_static.vcpu|int * 0.2)|int }}"
+  retries: "{{ (vcpus.stdout|int * testwaves_cpu_allocation_ratio|int *50 / 100 / testwaves_static.vcpu|int)|int }}"
+  delay: 20

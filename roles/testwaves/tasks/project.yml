@@ -1,0 +1,308 @@
+---
+- name: "Creating a temporary directories | Project task"
+  file:
+    path: "{{ item.value }}"
+    state: directory
+    mode: '0755'
+  with_dict: "{{ testwaves_directories }}"
+
+- name: "Creating rally project | Project task"
+  os_project:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_auth.project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: present
+    name: "{{ testwaves_project_name }}"
+    description: "{{ testwaves_project_description }}"
+    domain_id: "{{ testwaves_domain_id }}"
+    enabled: True
+
+- name: "Granted an admin role on the user admin in the project rally | Project task" 
+  os_user_role:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_auth.project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    user: "{{ testwaves_project_user }}"
+    role: "{{ testwaves_project_role }}"
+    project: "{{ testwaves_project_name }}"
+
+
+- name: "Set rally project quotas | Project task "
+  os_quota:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: present
+    name: "{{ item.name }}"
+    cores: "{{ item.cores }}"
+    instances: "{{ item.instances }}"
+    ram: "{{ item.ram }}"
+  with_items:
+    - "{{ testwaves_project_quota }}"
+
+
+- name: "Check an OpenSSH keypair | Project task"
+  stat:
+    path: "{{ testwaves_directories.keypair_dir }}/testwaves"
+  register: stat_ssh
+
+
+- name: "Generating an OpenSSH keypair | Project task"
+  shell: ssh-keygen -b 2048 -t rsa -f {{ testwaves_directories.keypair_dir }}/testwaves -q -N ""
+  when: testwaves_create_key is defined and stat_ssh.stat.exists == False
+
+
+- name: "Creating a key pair | Project task"
+  os_keypair:
+    auth:
+      project_name: "{{ testwaves_project_name }}"
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: present
+    name: testwaves_key
+    public_key_file: "{{ testwaves_directories.keypair_dir }}/testwaves.pub"
+  when: testwaves_create_key is defined
+
+
+- name: "Return private key file to ansible host | Project task"
+  fetch:
+    src: "{{ testwaves_directories.keypair_dir }}/{{ item }}"
+    dest: "/root/testwaves_{{ inventory_hostname }}/keys/"
+    flat: yes
+  with_items:
+    - testwaves
+    - testwaves.pub
+  when: testwaves_create_key is defined
+
+
+- name: "Creating a vxlan networks | Project task"
+  os_network:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    project: "{{ testwaves_project_name }}"
+    state: present
+    name: "{{ item.name }}"
+    provider_network_type: "{{ item.provider_network_type }}"
+    shared: "{{ item.shared }}"
+    external: "{{ item.external }}"
+  with_items: 
+    - "{{ testwaves_networks_vxlan }}"
+  when: testwaves_networks_vxlan is defined
+
+
+- name: "Creating a flat networks | Project task"
+  os_network:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_auth.project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    project: "{{ testwaves_project_name }}"
+    state: present
+    name: "{{ item.name }}"
+    provider_network_type: "{{ item.provider_network_type }}"
+    provider_physical_network: "{{ item.provider_physical_network }}"
+    shared: "{{ item.shared }}"
+    external: "{{ item.external }}"
+  with_items: 
+    - "{{ testwaves_networks_flat }}"
+  when: testwaves_networks_flat is defined
+
+
+- name: "Creating a vlan networks | Project task"
+  os_network:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    project: "{{ testwaves_project_name }}"
+    state: present
+    name: "{{ item.name }}"
+    provider_network_type: "{{ item.provider_network_type }}"
+    provider_physical_network: "{{ item.provider_physical_network }}"
+    provider_segmentation_id: "{{ item.provider_segmentation_id }}"
+    shared: "{{ item.shared }}"
+    external: "{{ item.external }}"
+  with_items: 
+    - "{{ testwaves_networks_vlan }}"
+  when: testwaves_networks_vlan is defined
+
+
+- name: "Creating a subnets | Project task"
+  os_subnet:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    project: "{{ testwaves_project_name }}"
+    state: present
+    name: "{{ item.name }}"
+    network_name: "{{ item.network_name }}"
+    cidr: "{{ item.cidr }}"
+    gateway_ip: "{{ item.gateway_ip }}"
+    allocation_pool_start: "{{ item.allocation_pool_start }}"
+    allocation_pool_end: "{{ item.allocation_pool_end }}"
+  with_items: 
+    - "{{ testwaves_subnets }}"
+  when: testwaves_subnets is defined
+
+
+- name: "Creating router | Project task"
+  os_router:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    project: "{{ testwaves_project_name }}"
+    name: "{{ item.name }}"
+    network: "{{ item.network }}"
+    external_fixed_ips:
+      - subnet: "{{ item.ex_subnet }}"
+        ip: "{{ item.ex_ip }}"
+    interfaces:
+      - "{{ item.int_subnet }}"
+  with_items: 
+    - "{{ testwaves_routers }}"
+  when: testwaves_routers is defined
+
+
+
+- name: "Creating security group | Project task"
+  os_security_group:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: present
+    name: "{{ testwaves_security_groups }}"
+  when: testwaves_security_groups is defined
+
+
+- name: "Creating security rules | Project task"
+  os_security_group_rule:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    security_group: "{{ item.security_group }}"
+    protocol: "{{ item.protocol }}"
+    port_range_min: "{{ item.port_range_min }}"
+    port_range_max: "{{ item.port_range_max }}"
+    remote_ip_prefix: "{{ item.remote_ip_prefix }}"
+  with_items:
+    - "{{ testwaves_security_group_rules }}"
+  when: testwaves_security_group_rules is defined
+
+
+- name: "Creating a flavors | Project task"
+  os_nova_flavor:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: present
+    name: "{{ item.name }}"
+    flavorid: "{{ item.name }}"
+    vcpus: "{{ item.vcpus }}"
+    ram: "{{ item.ram }}"
+    disk: "{{ item.disk }}"
+  with_items: 
+    - "{{ testwaves_flavor_types }}"
+  when: testwaves_flavor_types is defined
+
+
+- name: "Download images | Project task"
+  get_url:
+    url: "{{ item.url }}"
+    dest: "{{ testwaves_directories.images_dir }}"
+    mode: '0644'
+  with_items: 
+    - "{{ testwaves_cloud_images }}"
+  when: testwaves_cloud_images is defined
+
+
+- name: "Upload images | Project task" 
+  os_image:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: present
+    is_public: yes
+    name: "{{ item.name }}"
+    filename: "{{ item.filename }}"
+    container_format: "{{ item.container_format }}"
+    disk_format: "{{ item.disk_format }}"
+  with_items: 
+    - "{{ testwaves_cloud_images }}"
+  when: testwaves_cloud_images is defined
+

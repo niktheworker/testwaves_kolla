@@ -1,0 +1,61 @@
+---
+###Тип региона lxbr или ovs
+testwaves_region_type: lxbr
+
+###Режим запуска smoke - это минимальный набор тестов. Выключать при тестировании прода.
+testwaves_smoke: true
+
+###Флэт сети для создания 
+testwaves_networks_flat:
+  - { name: 'testwaves_flat1', provider_network_type: 'flat', provider_physical_network: 'provider', shared: 'yes', external: 'yes' }
+
+###Vxlan сети для создания 
+#testwaves_networks_vxlan:
+#  - { name: 'testwaves_vxlan1', provider_network_type: 'vxlan', shared: 'yes', external: 'no' }
+#  - { name: 'testwaves_vxlan2', provider_network_type: 'vxlan', shared: 'yes', external: 'no' }
+
+###Vlan сети для создания 
+#testwaves_networks_vlan:
+#  - { name: 'testwaves_vlan1', provider_network_type: 'vlan', provider_physical_network: 'provider', provider_segmentation_id: '10', shared: 'yes', external: 'yes' }
+
+
+###Сабнеты для vxlan/flat/vpn сетей. network_name указывает на testwaves_networks_flat/vxlan/vlan
+testwaves_subnets:
+  - { name: 'testwaves_provider1', network_name: 'testwaves_flat1', cidr: '10.220.132.0/24', gateway_ip: '10.220.132.100', allocation_pool_start: '10.220.132.101', allocation_pool_end: '10.220.132.200' }
+
+###Создание роутера. network - провайдерская сеть, int_subnet - vxlan сеть
+#testwaves_routers:
+#  - { name: 'testwaves_router', network: 'testwaves_flat1', ex_subnet: 'testwaves_provider1', ex_ip: '10.220.106.171', int_subnet: 'testwaves_internal1' }
+
+###Конфигурация темпеста
+testwaves_tempest_fixed_network_name: testwaves_flat1 #Какую сеть использует, когда темпест не создает сети. Для lxbr региона нужно указать один из vlan'ов. ДЛя ovs указывать не нужно.
+testwaves_tempest_build_timeout: 300 #Таймауты на тесты. На медленных регионах имеет смысл увеличивать до 600-700
+testwaves_tempest_dashboard_url: https://10.220.134.50 #vip dashboard
+testwaves_tempest_public_network_id: testwaves_flat1 #Провайдерская сеть для соединения с инстансами. Для lxbr региона указать один из vlan'ов, для ovs flat/vlan, которая доступна из утилити контейнера.
+testwaves_tempest_floating_network_name: testwaves_flat1 #Флоатинг сеть, адреса которой используются для валидации. Для lxbr указывать не нужно.
+
+###Сети, используемые для инстансов статической нагрузки
+testwaves_static_network:
+  - testwaves_flat1
+
+###Коэфицент переподписки
+testwaves_cpu_allocation_ratio: '1' 
+
+###Конфигурация rally
+testwaves_provider_networks: True #Должен быть True на lxbr регионах, False - на ovs
+testwaves_service_list: #Используемые наборы тестов
+  - authentication
+  - nova
+  - keystone
+  - cinder
+  - glance
+  - neutron #закомментировать на lxbr регионе
+testwaves_users_amount: 5 #Количество пользователей на регионе
+testwaves_tenants_amount: 2 #Количество тенантов
+testwaves_controllers_amount: 3 #Количество контрол нод
+testwaves_compute_amount: 3 #Количество компут нод
+testwaves_storage_amount: 3 #Количество сторедж нод
+testwaves_network_amount: 0 #Количество сетевых нод
+testwaves_time_multiplier: 1 #множитель времени выполнения (количества тестов)
+
+

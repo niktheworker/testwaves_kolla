@@ -1,0 +1,79 @@
+  NovaKeypair.boot_and_delete_server_with_keypair:
+    -
+      args:
+        "boot_server_kwargs":
+          "auto_assign_nic": true
+        {{ vm_params(image_name, flavor_name) }}
+      context:
+        {{ existing_network(is_rally_provider_networks=rally_provider_networks) }}
+        {% call user_context(tenants_amount, users_amount, use_existing_users) %}
+        quotas:
+          {{ unlimited_neutron() }}
+          {{ unlimited_nova(keypairs=true) }}
+        {% endcall %}
+      runner:
+        {{ constant_runner(concurrency=min(50, 2*controllers_amount), times=17*controllers_amount*time_multiplier, is_smoke=smoke) }}
+      sla:
+        {{ no_failures_sla() }}
+
+  NovaServers.boot_server_from_volume_and_delete:
+    -
+      args:
+        auto_assign_nic: true
+        {{ vm_params(image_name, flavor_name) }}
+        volume_size: 5
+      context:
+        {{ existing_network(is_rally_provider_networks=rally_provider_networks) }}
+        {% call user_context(tenants_amount, users_amount, use_existing_users) %}
+        quotas:
+          {{ unlimited_volumes() }}
+          {{ unlimited_neutron() }}
+          {{ unlimited_nova() }}
+        {% endcall %}
+      runner:
+        {{ constant_runner(concurrency=min(50, 3*controllers_amount), times=17*controllers_amount*time_multiplier, is_smoke=smoke) }}
+      sla:
+        {{ no_failures_sla() }}
+
+  NovaServers.boot_server_from_volume_and_live_migrate:
+    -
+      args:
+        auto_assign_nic: true
+        block_migration: false
+        volume_size: 10
+        {{ vm_params(image_name, flavor_name) }}
+      context:
+        {{ existing_network(is_rally_provider_networks=rally_provider_networks) }}
+        {% call user_context(tenants_amount, users_amount, use_existing_users) %}
+        quotas:
+          {{ unlimited_volumes() }}
+          {{ unlimited_neutron() }}
+          {{ unlimited_nova() }}
+        {% endcall %}
+      runner:
+        {{ constant_runner(concurrency=min(50, 3*controllers_amount), times=17*controllers_amount*time_multiplier, is_smoke=smoke) }}
+      sla:
+        {{ no_failures_sla() }}
+
+  NovaKeypair.create_and_delete_keypair:
+    -
+      context:
+        {% call user_context(tenants_amount, users_amount, use_existing_users) %}
+        quotas:
+          {{ unlimited_nova(keypairs=true) }}
+        {% endcall %}
+      runner:
+        {{ constant_runner(concurrency=min(50, 2*controllers_amount), times=67*controllers_amount*time_multiplier, is_smoke=smoke) }}
+      sla:
+        {{ no_failures_sla() }}
+
+  Quotas.nova_update_and_delete:
+    -
+      args:
+        max_quota: 1024
+      context:
+        {{ user_context(tenants_amount, users_amount, use_existing_users) }}
+      runner:
+        {{ constant_runner(concurrency=1, times=17*controllers_amount*time_multiplier, is_smoke=smoke) }}
+      sla:
+        {{ no_failures_sla() }}

@@ -1,0 +1,25 @@
+---
+- include: project.yml
+  when: testwaves_run | bool
+  tags:
+    - testwaves-project
+
+- include: tempest-test.yml
+  when: testwaves_run | bool
+  tags:
+    - testwaves-tempest
+
+- include: static-load.yml
+  when: testwaves_run | bool
+  tags:
+    - testwaves-static
+
+- include: rally-test.yml
+  when: testwaves_run | bool
+  tags:
+    - testwaves-rally
+
+- include: clear.yml
+  when: testwaves_run | bool
+  tags:
+    - testwaves-clear

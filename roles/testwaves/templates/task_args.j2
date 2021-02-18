@@ -1,0 +1,19 @@
+---
+  service_list:
+{% for item in testwaves_service_list %}
+    - {{ item }}
+{% endfor %}
+  use_existing_users:  {{ testwaves_use_existing_users }}
+  image_name: {{ testwaves_image_name }}
+  flavor_name: {{ testwaves_flavor_name }}
+  glance_image_location: {{ testwaves_glance_image_location }}  
+  smoke: {{ testwaves_smoke }}
+  users_amount: {{ testwaves_users_amount }}
+  tenants_amount: {{ testwaves_tenants_amount }}
+  controllers_amount: {{ testwaves_controllers_amount }}
+  compute_amount: {{ testwaves_compute_amount }}
+  storage_amount: {{ testwaves_storage_amount }}
+  network_amount: {{ testwaves_network_amount }}
+  time_multiplier: {{ testwaves_time_multiplier }}
+
+  rally_provider_networks: {{ testwaves_provider_networks }}

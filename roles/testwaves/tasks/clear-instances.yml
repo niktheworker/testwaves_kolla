@@ -1,0 +1,24 @@
+---
+- name: "Getting the number of used IP in network | Run instances in the {{ outer_item }} network task"
+  shell: |
+    . "{{ testwaves_openrc }}"
+
+    openstack ip availability list -f value --project {{ testwaves_project_name | quote }} | awk '/{{ outer_item| quote }} / {print $4}'
+  register: used_ip
+
+
+- name: "Delete static instances | Static load task"
+  os_server:
+    auth:
+      auth_url: "{{ testwaves_auth.auth_url }}"
+      project_name: "{{ testwaves_project_name }}"
+      username: "{{ testwaves_auth.username }}"
+      password: "{{ testwaves_auth.password }}"
+      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+    region_name: "{{ testwaves_region_name }}"
+    endpoint_type: "{{ testwaves_endpoint_type }}"
+    state: absent
+    wait: false
+    name: testwaves_static_instance_{{ outer_item }}_{{ item }}
+  with_sequence: count="{{ used_ip.stdout|int }}"
