@@ -275,16 +275,6 @@
   when: testwaves_flavor_types is defined
 
 
-- name: "Download images | Project task"
-  get_url:
-    url: "{{ item.url }}"
-    dest: "{{ testwaves_directories.images_dir }}"
-    mode: '0644'
-  with_items: 
-    - "{{ testwaves_cloud_images }}"
-  when: testwaves_cloud_images is defined
-
-
 - name: "Upload images | Project task" 
   os_image:
     auth:

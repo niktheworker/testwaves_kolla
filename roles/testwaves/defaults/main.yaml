@@ -70,8 +70,8 @@ testwaves_project_quota:
   - {name: 'testwaves', instances: '-1', cores: '-1', ram: '-1'}
 
 ###Флэт сети для создания 
-testwaves_networks_flat:
-  - { name: 'testwaves_flat1', provider_network_type: 'flat', provider_physical_network: 'physnet1', shared: 'yes', external: 'yes' }
+#testwaves_networks_flat:
+#  - { name: 'testwaves_flat1', provider_network_type: 'flat', provider_physical_network: 'physnet1', shared: 'yes', external: 'yes' }
 
 ###Vxlan сети для создания 
 testwaves_networks_vxlan:
@@ -84,13 +84,13 @@ testwaves_networks_vxlan:
 
 ###Сабнеты для vxlan/flat/vpn сетей. network_name указывает на testwaves_networks_flat/vxlan/vlan
 testwaves_subnets:
-  - { name: 'testwaves_provider1', network_name: 'testwaves_flat1', cidr: '10.220.131.0/24', gateway_ip: '10.220.131.100', allocation_pool_start: '10.220.131.101', allocation_pool_end: '10.220.131.200' }
+#  - { name: 'testwaves_provider1', network_name: 'testwaves_flat1', cidr: '10.220.131.0/24', gateway_ip: '10.220.131.100', allocation_pool_start: '10.220.131.101', allocation_pool_end: '10.220.131.200' }
   - { name: 'testwaves_subnet1', network_name: 'testwaves_vxlan1', cidr: '10.100.1.0/24', gateway_ip: '10.100.1.254', allocation_pool_start: '10.100.1.1', allocation_pool_end: '10.100.1.250' }  
   - { name: 'testwaves_subnet2', network_name: 'testwaves_vxlan2', cidr: '10.100.2.0/24', gateway_ip: '10.100.2.254', allocation_pool_start: '10.100.2.1', allocation_pool_end: '10.100.2.250' }
 
 ###Создание роутера. network - провайдерская сеть, int_subnet - vxlan сеть
-testwaves_routers:
-  - { name: 'testwaves_router', network: 'testwaves_flat1', ex_subnet: 'testwaves_provider1', ex_ip: '10.220.131.171', int_subnet: 'testwaves_subnet1' }
+#testwaves_routers:
+#  - { name: 'testwaves_router', network: 'testwaves_flat1', ex_subnet: 'testwaves_provider1', ex_ip: '10.220.131.171', int_subnet: 'testwaves_subnet1' }
 
 ###Имя группы безопасности для ее создания.
 testwaves_security_groups: testwaves
@@ -110,7 +110,8 @@ testwaves_flavor_types:
 
 ###Образы
 testwaves_cloud_images:
-  - { url: 'http://download.cirros-cloud.net/0.5.1/cirros-0.5.1-x86_64-disk.img', name: 'cirros-0.5.1-x86_64-disk', filename: '{{ testwaves_directories.images_dir }}/cirros-0.5.1-x86_64-disk.img', container_format: 'bare', disk_format: 'qcow2' }
+  - { name: 'cirros-0.5.1-x86_64-disk', filename: '/var/lib/rally/img/cirros-0.5.1-x86_64-disk.img', container_format: 'bare', disk_format: 'qcow2' }
+  - { name: 'centos7-unixbench', filename: '/var/lib/rally/img/centos7-unixbench.v01.qcow2', container_format: 'bare', disk_format: 'qcow2' }
 
 #########
 ############

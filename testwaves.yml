@@ -4,3 +4,19 @@
   user: root
   roles:
     - role: testwaves
+  vars:
+    - testwaves_auth:
+        auth_url: http://10.56.213.70:35357/v3
+        project_name: admin
+        username: admin
+        password: W8gPGbkJX5iSfdvYH2Hn1QL2GjpQ4yHD6PZHPqt5
+        user_domain_name: Default
+        project_domain_name: Default
+    - testwaves_openrc: /var/lib/kolla/config_files/admin-openrc.sh 
+    - nexus_pass: kjujnbgc,th
+    - testwaves_clear_routers: False    
+    - testwaves_tempest_public_network_id: eDZ@Net-Vlan-609
+    - testwaves_tempest_floating_network_name: eDZ@Net-Vlan-609
+    - testwaves_tempest_ver: 25.0.0
+    - testwaves_tempest_git_repo: /var/lib/rally/tempest_repo/
+
