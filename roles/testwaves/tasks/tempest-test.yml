@@ -53,7 +53,7 @@
 
     rally deployment create --fromenv --name=existing
   when: rally_deployment.stdout != "*"
-
+  ignore_errors: yes
 
 - name: "Use rally deployment | Tempest task"
   shell: |
