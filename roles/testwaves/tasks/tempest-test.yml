@@ -63,14 +63,6 @@
   when: rally_deployment.stdout != "*"
 
 
-#- name: "Create rally deployment | Tempest task"
-#  shell: |
-#    . "{{ testwaves_openrc }}"
-#
-#    rally deployment create --fromenv --name=existing
-#  when: rally_deployment.stdout != "*"
-
-
 - name: "Check tempest install | Tempest task"
   shell: |
     rally verify list-verifiers |  awk '/tempest-verifier /  {print $14 }'
@@ -79,7 +71,7 @@
 
 - name: "Installing tempest | Tempest task"
   shell: |
-    rally verify create-verifier --type tempest --name tempest-verifier --version {{ testwaves_tempest_ver }} --source {{ testwaves_tempest_git_repo }}
+    rally verify create-verifier --type tempest --name tempest-verifier --version {{ testwaves_tempest_ver }} --source {{ testwaves_tempest_git_repo }} --system-wide
   when: tempest_installed.stdout != "installed"
 
 
@@ -103,9 +95,9 @@
 
 - name: "Generate tempest report | Tempest task"
   shell: |
-    rally verify report --type html --to {{ testwaves_directories.reports_dir }}/tempest_report_{{ ansible_date_time.date }}_*.html
+    rally verify report --type html --to {{ testwaves_directories.reports_dir }}/tempest_report_{{ ansible_date_time.date }}.html
 
 
 - name: "Return tempest report to ansible host | Tempest task"
   shell: |
-    curl -v -u {{ nexus_user }}:{{ nexus_pass }} --upload-file {{ testwaves_directories.reports_dir }}/tempest_report_{{ ansible_date_time.date }}_*.html {{ nexus_ repo }}
+    curl -v -u {{ nexus_user }}:{{ nexus_pass }} --upload-file {{ testwaves_directories.reports_dir }}/tempest_report_{{ ansible_date_time.date }}.html {{ nexus_repo }}

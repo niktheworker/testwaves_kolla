@@ -27,9 +27,9 @@
 
 - name: "Report rally test | Rally task"
   shell: |
-    rally task report  --out {{ testwaves_directories.reports_dir }}/rally_report.html
+    rally task report  --out {{ testwaves_directories.reports_dir }}/rally_report{{ ansible_date_time.date }}.html
 
 
 - name: "Send rally report to Nexus host | Rally task"
   shell: |
-    curl -v -u {{ nexus_user }}:{{ nexus_pass }} --upload-file {{ testwaves_directories.reports_dir }}/rally_report_{{ ansible_date_time.date }}_{{ ansible_date_time.time }}.html {{ nexus_ repo }}
+    curl -v -u {{ nexus_user }}:{{ nexus_pass }} --upload-file {{ testwaves_directories.reports_dir }}/rally_report{{ ansible_date_time.date }}.html {{ nexus_repo }}

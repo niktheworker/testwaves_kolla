@@ -232,25 +232,25 @@
   when: testwaves_security_groups is defined
 
 
-- name: "Creating security rules | Project task"
-  os_security_group_rule:
-    auth:
-      auth_url: "{{ testwaves_auth.auth_url }}"
-      project_name: "{{ testwaves_project_name }}"
-      username: "{{ testwaves_auth.username }}"
-      password: "{{ testwaves_auth.password }}"
-      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
-      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
-    region_name: "{{ testwaves_region_name }}"
-    endpoint_type: "{{ testwaves_endpoint_type }}"
-    security_group: "{{ item.security_group }}"
-    protocol: "{{ item.protocol }}"
-    port_range_min: "{{ item.port_range_min }}"
-    port_range_max: "{{ item.port_range_max }}"
-    remote_ip_prefix: "{{ item.remote_ip_prefix }}"
-  with_items:
-    - "{{ testwaves_security_group_rules }}"
-  when: testwaves_security_group_rules is defined
+#- name: "Creating security rules | Project task"
+#  openstack.cloud.security_group_rule:
+#    auth:
+#      auth_url: "{{ testwaves_auth.auth_url }}"
+#      project_name: "{{ testwaves_project_name }}"
+#      username: "{{ testwaves_auth.username }}"
+#      password: "{{ testwaves_auth.password }}"
+#      user_domain_name: "{{ testwaves_auth.user_domain_name }}"
+#      project_domain_name: "{{ testwaves_auth.project_domain_name }}"
+#    region_name: "{{ testwaves_region_name }}"
+#    security_group: 6c2f869c-f8d5-43f2-9690-40d7027cb03f #"{{ item.security_group }}"
+#    protocol: "{{ item.protocol }}"
+#    port_range_min: "{{ item.port_range_min }}"
+#    port_range_max: "{{ item.port_range_max }}"
+#    remote_ip_prefix: "{{ item.remote_ip_prefix }}"
+#  with_items:
+#    - "{{ testwaves_security_group_rules }}"
+#  when: testwaves_security_group_rules is defined
+
 
 
 - name: "Creating a flavors | Project task"
